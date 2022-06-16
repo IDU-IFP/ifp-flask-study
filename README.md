@@ -9,19 +9,34 @@ Flask github : https://github.com/pallets/flask
    - 가상환경 생성하기
    - Flask 설치하기
    - Flask 로 Hello, World! 페이지 띄워 보기
-2. Python에서 DB 사용하기
+2. Flask를 사용하여 간단한 CRUD 구현해 보기 ( 데이터베이스 없이 )
+   - Routing이란?
+   - Create
+   - Read
+   - Update
+   - Delete
+4. Python에서 DB 사용하기
    - Python DB API란 무엇인지 알아보기
    - 간단하게 Python으로 SQLite 다뤄보기
    - sqlalchemy 를 이용해서 ORM의 개념 알아보기
-3. Flask란 무엇인가?
-   - Flask vs DJango
-   - Flask 공식 문서에서 제시하는 디렉토리 구조
-   - Flask ORM, Flask-SQLAlchemy 을 사용하여 데이터 다뤄 보기
-4. 블로그 애플리케이션 제작하기
-   - 디렉토리 구조 설계하기
-   - 게시물 작성,조회,수정,삭제 처리하기
-   - 댓글 작성,조회,수정,삭제 처리하기
-  
+5. Flask ORM을 사용하여 DB 다루어 보기
+   - Create
+   - Read
+   - Update
+   - Delete
+6. Flask 를 사용하여 간단한 블로그 앱 작성해 보기
+   - Flask에서 정적 파일을 다루는 방법
+   - Flask 공식 문서에서 제공하는 디렉토리 구조
+   - 블로그 앱에서 사용할 디렉토리 구조
   
   
   ...작성중...
+  
+  
+  ----
+  ### 참고 자료
+  flask 공식 문서 : https://flask.palletsprojects.com/en/2.1.x/
+  점프 투 플라스크 : https://wikidocs.net/book/4542
+  생활코딩 플라스크 강좌 : https://www.youtube.com/playlist?list=PLuHgQVnccGMClNOIuT3b3M4YZjxmult2y
+  
+  ---
