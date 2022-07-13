@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}All Categories{% endblock %}
+
+{% block header %}
+    <!-- Page Header-->
+    <header class="masthead"
+            style="background-image: url({{ url_for('static', filename='assets/img/categories-bg.jpeg') }})">
+        <div class="container position-relative px-4 px-lg-5">
+            <div class="row gx-4 gx-lg-5 justify-content-center">
+                <div class="col-md-10 col-lg-8 col-xl-7">
+                    <div class="site-heading">
+                        <h1>All Categories</h1>
+                        <span class="subheading">Blog categories...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+{% endblock %}
+
+{% block content %}
+    <!-- Main Content-->
+    <div class="container px-4 px-lg-5">
+        <div class="row gx-4 gx-lg-5 justify-content-center">
+            <div class="col-md-10 col-lg-8 col-xl-10">
+
+
+                {% for category in categories %}
+                    <!-- Category item-->
+                    <div class="post-preview">
+                        <a href="{{ url_for('views.post_list', id=category.id) }}">
+                            <h2 class="post-title">{{ category.name }}</h2>
+                        </a>
+                    </div>
+                    <!-- Divider-->
+                    <hr class="my-4"/>
+                {% endfor %}
+
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
