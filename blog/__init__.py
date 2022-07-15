@@ -1,13 +1,17 @@
+import click
 from flask import Flask, abort
+from flask.cli import with_appcontext
+from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash
 from wtforms import PasswordField, StringField
 from wtforms.validators import InputRequired
 
-from .models import DB_NAME, db, get_user_model, get_post_model, get_category_model
+from .models import DB_NAME, db, get_user_model, get_post_model, get_category_model, get_comment_model
 from os import path
 from flask_login import LoginManager, current_user
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
+
 
 # app을 만들어주는 함수를 지정해 주자.
 def create_app():
@@ -31,9 +35,11 @@ def create_app():
                 return True
             else:
                 return abort(403)
+
         class CustomPasswordField(StringField):
             def populate_obj(self, obj, name):
                 setattr(obj, name, generate_password_hash(self.data))
+
         form_extra_fields = {
             'password': CustomPasswordField('Password', validators=[InputRequired()])
         }
@@ -47,6 +53,7 @@ def create_app():
                 return True
             else:
                 return abort(403)
+
         form_excluded_columns = {
             'created_at'
         }
@@ -58,10 +65,17 @@ def create_app():
             else:
                 return abort(403)
 
+    class MyCommentView(ModelView):
+        def is_accessible(self):
+            if current_user.is_authenticated and current_user.is_staff == True:
+                return True
+            else:
+                return abort(403)
 
-    admin.add_view(MyUserView(get_user_model(), db.session)) # get_user_model 로 유저 클래스를 가져옴
+    admin.add_view(MyUserView(get_user_model(), db.session))  # get_user_model 로 유저 클래스를 가져옴
     admin.add_view(MyPostView(get_post_model(), db.session))
     admin.add_view(MyCategoryView(get_category_model(), db.session))
+    admin.add_view(MyCommentView(get_comment_model(), db.session))
     db.init_app(app)
 
     from .views import views
@@ -76,8 +90,8 @@ def create_app():
     from .models import User
     create_database(app)
 
-    login_manager = LoginManager() # LoginManager() 객체를 만들어 준다.
-    login_manager.login_view = "auth.login" # 만약 로그인이 필요한 곳에 로그인하지 않은 유저가 접근할 경우, 로그인 페이지로 리다리엑트 되도록 해 준다.
+    login_manager = LoginManager()  # LoginManager() 객체를 만들어 준다.
+    login_manager.login_view = "auth.login"  # 만약 로그인이 필요한 곳에 로그인하지 않은 유저가 접근할 경우, 로그인 페이지로 리다리엑트 되도록 해 준다.
     login_manager.init_app(app)
 
     # 받은 id로부터, DB에 있는 유저 테이블의 정보에 접근하도록 해 줌.
@@ -86,7 +100,37 @@ def create_app():
     def load_user_by_id(id):
         return User.query.get(int(id))
 
+
+    # Custom Command Line
+    import click
+    from flask.cli import with_appcontext
+    @click.command(name="create_superuser")
+    @with_appcontext
+    def create_superuser():
+
+        # 정보 입력받기
+        username = input("Enter username : ")
+        email = input("Enter email : ")
+        password = input("Enter password : ")
+        is_staff = True
+
+        try:
+            superuser = get_user_model()(
+                username = username,
+                email = email,
+                password = generate_password_hash(password),
+                is_staff = is_staff
+            )
+            db.session.add(superuser)
+            db.session.commit()
+        except IntegrityError:
+            print('\033[31m' + "Error : username or email already exists.")
+        print(f"User created! : {email}")
+
+    app.cli.add_command(create_superuser)
+
     return app
+
 
 
 # DB 추가

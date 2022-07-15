@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, abort
 from flask_login import current_user, login_required
-from .models import get_category_model, get_post_model, db
-from .forms import PostForm
+from .models import get_category_model, get_post_model, db, get_comment_model
+from .forms import PostForm, CommentForm
 
 views = Blueprint("views", __name__)
 
@@ -49,7 +49,8 @@ def edit_post(id):
     # 현재 유저는 스태프 권한을 가지고 있어야 하고, 작성자만 게시물을 수정할 수 있어야 한다.
     if current_user.is_staff == True and current_user.username == post.user.username:
         if request.method == "GET":
-            return render_template("post_edit_form.html", user=current_user, post=post, categories=categories, form=form)
+            return render_template("post_edit_form.html", user=current_user, post=post, categories=categories,
+                                   form=form)
         elif request.method == "POST" and form.validate_on_submit():
             post.title = form.title.data
             post.content = form.content.data
@@ -80,9 +81,40 @@ def post_list(id):
 # /posts/게시물의 id 로 포스트 정보를 보여줌
 @views.route('/posts/<int:id>')
 def post_detail(id):
+    comment_form = CommentForm()
     post = get_post_model().query.filter_by(id=id).first()
-    return render_template("post_detail.html", user=current_user, post=post)
+    comments = get_post_model().query.filter_by(id=id).first().comments # id에 맞는 포스트 모델을 가져와서, 해당 게시물에 달린 모든 댓글들을 가져옴
+    return render_template("post_detail.html", user=current_user, post=post, comments=comments, form=comment_form)
 
+
+@login_required
+@views.route("/create-comment/<int:id>", methods=['POST'])
+def create_comment(id):
+    form = CommentForm()
+    if request.method == "POST" and form.validate_on_submit():
+        comment = get_comment_model()(
+            content=form.content.data,
+            author_id=current_user.id,
+            post_id=id
+        )
+        db.session.add(comment)
+        db.session.commit()
+        return redirect(url_for("views.post_detail", id=id))
+
+@login_required
+@views.route("/edit-comment/<int:post_id>/<int:comment_id>", methods=["POST"])
+def edit_comment(post_id, comment_id):
+    comment = get_comment_model().query.filter_by(id=comment_id).first() # 수정할 댓글을 특정해야 한다.
+    form = CommentForm() # Form으로 데이터를 받아온다.
+    if current_user.username == comment.user.username:
+        if form.validate_on_submit():
+            comment.content = form.content.data
+            db.session.commit()
+            return redirect(url_for("views.post_detail", id=post_id))
+        else:
+            print("validation failed!")
+    else:
+        return abort(403)
 
 @views.route("/contact")
 def contact():
