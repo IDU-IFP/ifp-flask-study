@@ -1,29 +1,52 @@
-from flask import Flask
-from flask_restful import Resource, Api
+import pprint
 import random
 
-app=Flask(__name__)
-api=Api(app)
+from flask import Flask, request
+from flask_restful import Resource, Api
 
-cars=[]
+app = Flask(__name__)
+api = Api(app)
+
+cars = []
 
 class Car(Resource):
     def get(self, name):
-        for car in cars:
-            if car['name'] == name:
-                return car
-            
+        car = next(filter(lambda x: x['name'] == name, cars), None)
+        return {'car' : car}, 200 if car else 404
+
     def post(self, name):
-        car={'name': name, 'price':random.randrange(1000000, 1000000000)}
-        cars.append(car)
-        return car
-    
+        if next(filter(lambda x: x['name'] == name, cars), None):
+            return {'error' : f'{name} item already exists.'}, 400
+        data = request.get_json()
+        new_car = {'name' : name, 'price' : data['price']}
+        cars.append(new_car)
+        return new_car, 201
+
     def delete(self, name):
-        pass
+        global cars
+        car = car = next(filter(lambda x: x['name'] == name, cars), None)
+        cars = list(filter(lambda x : x['name'] != name, cars))
+        if car:
+            return {'message': f'car <{name}> deleted successfully!'}, 200
+        else:
+            return {'message': f'car <{name}> not found.'}, 404
+
     def put(self, name):
-        pass
-    
+        data = request.get_json()
+        car=next(filter(lambda x: x['name']==name, cars), None)
+        if car is None:
+            car={'name':name, 'price': data['price']}
+            cars.append(car)
+        else:
+            car.update(data)
+        return car
+
+class CarList(Resource):
+    def get(self):
+        return {'cars' : cars}
+
 api.add_resource(Car, '/car/<string:name>')
+api.add_resource(CarList, '/cars')
 
 if __name__ == "__main__":
     app.run(debug=True)
