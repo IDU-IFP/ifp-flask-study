@@ -7,46 +7,46 @@ from flask_restful import Resource, Api
 app = Flask(__name__)
 api = Api(app)
 
-cars = []
+animals = []
 
-class Car(Resource):
+class animal(Resource):
     def get(self, name):
-        car = next(filter(lambda x: x['name'] == name, cars), None)
-        return {'car' : car}, 200 if car else 404
+        animal = next(filter(lambda x: x['name'] == name, animals), None)
+        return {'animal' : animal}, 200 if animal else 404
 
     def post(self, name):
-        if next(filter(lambda x: x['name'] == name, cars), None):
+        if next(filter(lambda x: x['name'] == name, animals), None):
             return {'error' : f'{name} item already exists.'}, 400
         data = request.get_json()
-        new_car = {'name' : name, 'price' : data['price']}
-        cars.append(new_car)
-        return new_car, 201
+        new_animal = {'name' : name, 'age' : data['age']}
+        animals.append(new_animal)
+        return new_animal, 201
 
     def delete(self, name):
-        global cars
-        car = car = next(filter(lambda x: x['name'] == name, cars), None)
-        cars = list(filter(lambda x : x['name'] != name, cars))
-        if car:
-            return {'message': f'car <{name}> deleted successfully!'}, 200
+        global animals
+        animal = animal = next(filter(lambda x: x['name'] == name, animals), None)
+        animals = list(filter(lambda x : x['name'] != name, animals))
+        if animal:
+            return {'message': f'animal <{name}> deleted successfully!'}, 200
         else:
-            return {'message': f'car <{name}> not found.'}, 404
+            return {'message': f'animal <{name}> not found.'}, 404
 
     def put(self, name):
         data = request.get_json()
-        car=next(filter(lambda x: x['name']==name, cars), None)
-        if car is None:
-            car={'name':name, 'price': data['price']}
-            cars.append(car)
+        animal=next(filter(lambda x: x['name']==name, animals), None)
+        if animal is None:
+            animal={'name':name, 'age': data['age']}
+            animals.append(animal)
         else:
-            car.update(data)
-        return car
+            animal.update(data)
+        return animal
 
-class CarList(Resource):
+class animalList(Resource):
     def get(self):
-        return {'cars' : cars}
+        return {'animals' : animals}
 
-api.add_resource(Car, '/car/<string:name>')
-api.add_resource(CarList, '/cars')
+api.add_resource(animal, '/animal/<string:name>')
+api.add_resource(animalList, '/animals')
 
 if __name__ == "__main__":
     app.run(debug=True)
